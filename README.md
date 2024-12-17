@@ -28,12 +28,10 @@ The DNN architectures generated from these spaces are represented as flexible re
 ## Installation
 
 Below are the installation instructions for this tool:
-1. **Clone the repository:**
-
-   ```bash
-   git clone <repository-url>
-2. **Navigate to the project folder:**
-3. **Install dependencies:**
+1. **Get the repository:**
+To obtain this repository, you can either clone it or simply download it directly.
+3. **Navigate to the project folder:**
+4. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
 If a package fails to install, try installing it manually with:
