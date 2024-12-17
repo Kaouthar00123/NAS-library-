@@ -1,0 +1,21 @@
+# Ignore les dossiers commençant par un point
+.*/
+
+# Ignore les dossiers commençant par deux tirets bas
+__*/
+
+nas_env
+env2
+
+data
+log
+runs
+writer
+writers
+build
+
+#Special folder
+gitFolder
+
+#file outputs
+outs.json

@@ -1,0 +1,14 @@
+setuptools
+calflops
+matplotlib
+networkx
+numpy
+psutil
+PyYAML
+scikit_learn
+scipy
+setuptools
+torch
+torchvision
+tensorboard
+transformers

@@ -1,0 +1,244 @@
+task_params:
+  type: classification #detection
+  # objective_metric: accuracy #hardware
+
+# arch_type: cnn #rnn
+
+search_space: #add config example, #not save weights in file out, optional, interface interactif(metrique), onnx
+  pattern: LayerSearchSpace  #CellSearchSpace #HierarchicalSearchSpace
+  config: #to be defined or default
+    primitive_operations:
+      - AvgPool2d-kernel_size:2x2
+      - MaxPool2d-kernel_size:3x3
+      - SeparableConv2d-kernel_size:3x3
+      - Conv2d-kernel_size:3x3&padding:1
+      - Conv2d-kernel_size:2x2&padding:1
+      - Bottleneck
+    chain_size:
+      - 4
+      - 7
+    other_configs:
+      out_channels:
+        - 16
+        - 32
+        - 64
+      kernel_size:
+        - 3
+        - 5 
+      expansion_ratio:
+        - 1
+        - 3
+        - 6
+    node_operations:
+      - node_id: 1
+        allowed_operations:
+            - Conv2d-kernel_size:3x3
+      - node_id: 2
+        allowed_operations:
+            - Bottleneck
+      - node_id: 3
+        combine_op: sum_features_maps
+      - node_id: max-1
+        allowed_operations:
+            - AvgPool2d-kernel_size:2x2
+      - node_id: max
+        allowed_operations:
+            - Conv2d-kernel_size:1x1
+      - node_id : end
+        combine_op: concat_features_maps
+    edge_operations:
+      - from: 1
+        to: 3
+        allowed_operations:
+          - Identity
+      - from: 1
+        to: 2
+        allowed_operations:
+          - Identity
+      - from: 2
+        to: 3
+        allowed_operations:
+          - Identity
+
+search_method:
+  method: RandomSearch #RegularizationEvaluation #BayesianOptimizer
+  config: #to be defined or default
+    max_iteration_time: 50
+    # surrogate_model: GaussianProcessSurrogate #case BayesianOptimizer
+    num_iterations : 5
+    result:
+      outs_file: outs.json
+
+train_method:
+  method: FullTrain 
+  config: #to be defined or default
+    max_training_time : 400
+    optimizer:
+      name: Adam
+      params:
+        lr: 0.1
+        #weight_decay: 
+        #momentum
+    loss_function: 
+      name: CrossEntropyLoss
+      params: 
+
+    data:
+      epochs: 2
+      train_batch_size: 30
+      val_batch_size: 30
+      train_size: 5000
+      val_size: 1000
+
+eval_method:
+    method: SimpleEvaluator
+    config: #to be defined or default
+
+dataset_params: 
+  dataset_name: CIFAR10  # Name of the dataset to load. Currently supports 'CIFAR10', 'CIFAR100', or a custom dataset.
+  data_augmentation: Null  # Indicates whether data augmentation techniques should be applied during training.
+  preprocessing: Null  # Indicates preprocessing steps that should be applied to the data.
+  channels: 3  # Number of channels in the images (e.g., 3 for RGB)
+  width: 32  # Width of the images in pixels
+  height: 32  # Height of the images in pixels
+  num_classes: 10
+
+
+#************MobileNetV2-Space
+# pattern: LayerSearchSpace
+# primitive_operations:
+#   - AvgPool2d-kernel_size:2x2
+#   - MaxPool2d-kernel_size:3x3
+#   - SeparableConv2d-kernel_size:3x3
+#   - Conv2d-kernel_size:5x5&padding:1
+#   - Conv2d-kernel_size:3x3&padding:1
+#   - Bottleneck
+
+# chain_size:
+#   - 7
+#   - 8
+
+# other_configs:
+#   out_channels:
+#     - 32
+#     - 64
+#   kernel_size:
+#     - 3
+#     - 5 
+#   expansion_ratio:
+#     - 1
+#     - 3
+#     - 6
+
+# node_operations:
+#   - node_id: 1
+#     allowed_operations:
+#         - Conv2d-kernel_size:3x3
+#   - node_id: 2
+#     allowed_operations:
+#         - Bottleneck
+#   - node_id: 3
+#     combine_op: sum_features_maps
+#   - node_id: max-1
+#     allowed_operations:
+#         - AvgPool2d-kernel_size:2x2
+#   - node_id: max
+#     allowed_operations:
+#         - Conv2d-kernel_size:1x1
+#   - node_id : end
+#     combine_op: concat_features_maps
+
+# edge_operations:
+#   - from: 1
+#     to: 3
+#     allowed_operations:
+#       - Identity
+#   - from: 1
+#     to: 2
+#     allowed_operations:
+#       - Identity
+#   - from: 2
+#     to: 3
+#     allowed_operations:
+#       - Identity
+
+
+#pattern:CellSearchSpace
+#config:
+  # num_cells: 3
+  # num_cell_groups:
+  #     0: normal
+  #     1: reduction
+  # cells_layout: [0,0, 1]
+  # cell_groups_details:
+  #   num_nodes_per_cell: 4
+  # #   num_init_nodes: 2
+  # #   num_init_inputs: 2
+  #   primitive_operations:
+  #     0:
+  #         - Zero
+  #         - Identity
+  #         - Conv2d-kernel_size:3x3&padding:1
+  #         - SepConvDARTS-kernel_size:3x3
+  #         - DilConvDARTS-kernel_size:3x3
+  #     1:
+  #         - Zero
+  #         - Identity
+  #         - MaxPool2d-kernel_size:3x3
+  #         - AvgPool2d-kernel_size:3x3 
+  #         - Conv2d-kernel_size:2x2
+  # """
+
+#************************************
+# pattern:HierarchicalSearchSpace
+# primitive_operations:
+#   - SepConvDARTS-stride:1x1
+#   - Zero
+#   - Identity
+#   - MaxPool2d-kernel_size:2x2
+#   - AvgPool2d
+#   - DepthwiseConv
+#   - ConvBNReLU
+# hierarchical_params:
+#   num_levels: 3
+#   details_levels:
+#     - num_level: 1 #motif
+#       num_nodes: 4
+
+#     - num_level: 2 #cell
+#       num_nodes: 5
+
+#     - num_level: 3 #external_graph
+#       num_nodes: 4
+#       edge_operations:
+#         - from: 0
+#           to: 1
+#           allowed_operations:
+#             - StemNASLib
+#         - from: 2
+#           to: 3
+#           allowed_operations:
+#             - SepConvDARTS-stride:2x2
+#         # - from: 4
+#         #   to: 5
+#         #   allowed_operations:
+#         #     - SepConvDARTS-stride:2x2
+#         # - from: 6
+#         #   to: 7
+#         #   allowed_operations:
+#         #     - SepConvDARTS-stride:1x1
+# other_configs:
+#   out_channels:
+#     - 16
+#     - 32
+#     - 64
+#   stride:
+#     - 1
+#     - 2
+#   kernel_size:
+#     - 3
+#     - 5
+#   expansion_ratio:
+#     - 1
+#     - 6
+# """

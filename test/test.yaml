@@ -1,0 +1,78 @@
+task_params:
+  type: classification #tache à effectuer
+
+search_space: #espace de recherche NAS
+  pattern: LayerSearchSpace  #CellSearchSpace #HierarchicalSearchSpace
+  config: 
+    primitive_operations:
+      - Conv2d-kernel_size:3x3&padding:1 #operaion DNNs primitive de pytorch avec specfication de certains de ces paramtres
+      - AvgPool2d-kernel_size:3x3 # ou AvgPool2d: { kernel_size: [3x3, 1x2] }
+      - SeparableConv2d-kernel_size:3x3 #user_defined (une block des operations DNNs définie par utlisateur)
+      - Identity
+      - ConvBNReLU
+    chain_size: [5, 7]
+    other_configs:       #plage des valeurs autorisé pour les paramtres des operations 
+      out_channels: [16, 32, 64]  #nombre de filtre
+      kernel_size: [3, 5]  #taille de filtre
+    node_operations:  #specfications sur les nodes (etapes)
+      - node_id: 1
+        allowed_operations:
+            - Conv2d-kernel_size:3x3
+      - node_id: 2
+        allowed_operations: [AvgPool2d, Identity]
+      - node_id: 3
+        combine_op: sum_features_maps
+      - node_id: max-1
+        allowed_operations:
+            - AvgPool2d-kernel_size:2x2
+      - node_id: max
+        allowed_operations:
+            - Conv2d-kernel_size:1x1
+      - node_id : end  #dernier node
+        combine_op: concat_features_maps
+    edge_operations: #specfications sur les cnx entre les nodes
+      - { from: 1, to: 3 }
+      - { from: 2, to: 3 }
+
+
+search_method: #strategie de recherche
+  method: RandomSearch  # ou RegularizationEvaluation #BayesianOptimizer
+  config: 
+    max_iteration_time: 100   #en second
+    num_iterations : 10
+
+    metrics :
+      - FLOPs
+      - runtime
+      - valid_acc
+    result: #resulat sur les archis génerés et leur métriques
+      outs_file: outs.json
+
+train_method:  #strategie d'entrainement d'une architecture DNNs
+  method: FullTrain 
+  config: #to be defined or default
+    optimizer:
+      name: Adam
+      params:
+        lr: 0.001
+    loss_function: 
+      name: CrossEntropyLoss
+
+    data:
+      num_epochs: 30 
+      train_batch_size: 30
+      val_batch_size: 30
+      train_size: 20000
+      val_size: 2000
+
+eval_method: #strategie d'estimation des performances d'un modeles DNNs
+    method: SimpleEvaluator
+
+dataset_params:  #donne utlisé pour apprentisage et validation
+  dataset_name: CIFAR10  # Name of the dataset to load. Currently supports 'CIFAR10', 'CIFAR100', or a custom dataset.
+  data_augmentation: Null  # Indicates whether data augmentation techniques should be applied during training.
+  preprocessing: Null  # Indicates preprocessing steps that should be applied to the data.
+  channels: 3  # Number of channels in the images (e.g., 3 for RGB)
+  width: 32  # Width of the images in pixels
+  height: 32  # Height of the images in pixels
+  num_classes: 10

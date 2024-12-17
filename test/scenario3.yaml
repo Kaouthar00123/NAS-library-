@@ -1,0 +1,91 @@
+task_params:
+  type: classification #tache à effectuer
+
+search_space: 
+  pattern: LayerSearchSpace
+  config:
+    chain_size: [19, 19]
+    node_operations:
+      - node_id: 1  
+        allowed_operations: [Conv2d-kernel_size:3x3&out_channels:32]
+      - node_id: 2  
+        allowed_operations: [MBConv-out_channels:16]
+      - node_id: 3   
+        allowed_operations: [MBConv-out_channels:24]
+      - node_id: 4  
+        allowed_operations: [MBConv-out_channels:24]
+      - node_id: 5  
+        allowed_operations: [MBConv-out_channels:32]
+      - node_id: 6  
+        allowed_operations: [MBConv-out_channels:32]
+      - node_id: 7  
+        allowed_operations: [MBConv-out_channels:32]
+      - node_id: 8  
+        allowed_operations: [MBConv-out_channels:64]
+      - node_id: 9  
+        allowed_operations: [MBConv-out_channels:64]
+      - node_id: 10  
+        allowed_operations: [MBConv-out_channels:64]
+      - node_id: 11  
+        allowed_operations: [MBConv-out_channels:64]
+      - node_id: 12  
+        allowed_operations: [MBConv-out_channels:96]
+      - node_id: 13  
+        allowed_operations: [MBConv-out_channels:96]
+      - node_id: 14  
+        allowed_operations: [MBConv-out_channels:96]
+      - node_id: 15  
+        allowed_operations: [MBConv-out_channels:160]
+      - node_id: 16  
+        allowed_operations: [MBConv-out_channels:160]
+      - node_id: 17  
+        allowed_operations: [MBConv-out_channels:160]
+      - node_id: 18  
+        allowed_operations: [MBConv-out_channels:320]
+      - node_id: 19  
+        allowed_operations: [MBConv-out_channels:1280]
+      - node_id: max  # Last node with allowed operation
+        allowed_operations: [AvgPool2d-kernel_size:1x1]
+    other_configs: {kernel_size: [3, 5],expansion_ratio: [1, 2, 3, 4 ,6]}
+
+search_method: #strategie de recherche
+  method: RandomSearch  # ou RegularizationEvaluation #BayesianOptimizer
+  config: 
+    max_iteration_time: 100   #en second
+    num_iterations : 10
+
+    metrics :
+      - FLOPs
+      - runtime
+      - valid_acc
+    result: #resulat sur les archis génerés et leur métriques
+      outs_file: outs.json
+
+train_method:  #strategie d'entrainement d'une architecture DNNs
+  method: FullTrain 
+  config: #to be defined or default
+    optimizer:
+      name: Adam
+      params:
+        lr: 0.001
+    loss_function: 
+      name: CrossEntropyLoss
+
+    data:
+      num_epochs: 30 
+      train_batch_size: 30
+      val_batch_size: 30
+      train_size: 5000
+      val_size: 1000
+
+eval_method: #strategie d'estimation des performances d'un modeles DNNs
+    method: SimpleEvaluator
+
+dataset_params:  #donne utlisé pour apprentisage et validation
+  dataset_name: CIFAR10  # Name of the dataset to load. Currently supports 'CIFAR10', 'CIFAR100', or a custom dataset.
+  data_augmentation: Null  # Indicates whether data augmentation techniques should be applied during training.
+  preprocessing: Null  # Indicates preprocessing steps that should be applied to the data.
+  channels: 3  # Number of channels in the images (e.g., 3 for RGB)
+  width: 32  # Width of the images in pixels
+  height: 32  # Height of the images in pixels
+  num_classes: 10
