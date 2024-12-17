@@ -30,7 +30,7 @@ The DNN architectures generated from these spaces are represented as flexible re
 Below are the installation instructions for this tool:
 1. **Get the repository:**
 To obtain this repository, you can either clone it or simply download it directly.
-3. **Navigate to the project folder:**
+3. **Navigate to the project folder**
 4. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
